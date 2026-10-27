@@ -1,95 +1,185 @@
+import math
+
+import board
+import busio
 import rclpy
+from adafruit_motorkit import MotorKit
+from geometry_msgs.msg import Quaternion, TransformStamped, Twist
+from nav_msgs.msg import Odometry
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from sensor_msgs.msg import Image
-import depthai as dai
+from tf2_ros import TransformBroadcaster
 
 
-def frame_to_imgmsg(frame, encoding, frame_id, stamp):
-    """Construye un sensor_msgs/Image manualmente, sin depender de cv_bridge."""
-    msg = Image()
-    msg.height = frame.shape[0]
-    msg.width = frame.shape[1]
-    msg.encoding = encoding
-    msg.is_bigendian = 0
-    msg.step = int(frame.strides[0])
-    msg.data = frame.tobytes()
-    msg.header.frame_id = frame_id
-    msg.header.stamp = stamp
-    return msg
-
-
-class OakCameraNode(Node):
+class MotorDriverNode(Node):
     def __init__(self):
-        super().__init__('oak_camera_node')
+        super().__init__('motor_driver_node')
 
-        self.declare_parameter('fps', 15)
-        self.declare_parameter('width', 320)
-        self.declare_parameter('height', 240)
-        self.fps = int(self.get_parameter('fps').value)
-        self.width = int(self.get_parameter('width').value)
-        self.height = int(self.get_parameter('height').value)
+        i2c = busio.I2C(board.SCL_1, board.SDA_1)
+        self.kit = MotorKit(i2c=i2c)
 
-        # QoS de sensor (best effort, cola pequeña): mucho mas barato que
-        # el reliable por defecto al publicar imagenes en la Jetson Nano.
-        self.rgb_pub = self.create_publisher(
-            Image, '/oak/rgb/image_raw', qos_profile_sensor_data)
+        # Parámetros (ajustables sin recompilar, ver -p en ros2 run)
+        self.declare_parameter('wheel_separation', 0.125)
+        self.declare_parameter('max_linear', 0.5)
+        self.declare_parameter('odom_rate_hz', 20.0)
+        self.declare_parameter('min_throttle', 0.35)
+        # Orientacion del robot respecto al cableado de los motores:
+        #   reverse_direction=True -> el "frente" pasa a ser el lado contrario
+        #   (invierte el sentido de los dos motores e intercambia izquierda/derecha).
+        #   swap_motors=True -> intercambia motor1/motor2 (si gira al reves).
+        self.declare_parameter('reverse_direction', True)
+        self.declare_parameter('swap_motors', True)
+        # Correccion de deriva al ir recto (multiplica el throttle final de cada rueda).
+        # Si se desvia a la DERECHA, la rueda izquierda va mas rapida: baja left_gain.
+        # Si se desvia a la IZQUIERDA, baja right_gain.
+        self.declare_parameter('left_gain', 1.0)
+        self.declare_parameter('right_gain', 1.0)
 
-        self.pipeline = self.build_pipeline()
-        self.device = dai.Device(self.pipeline)
-        self.rgb_queue = self.device.getOutputQueue(
-            name='rgb', maxSize=2, blocking=False)
+        self.wheel_separation = self.get_parameter('wheel_separation').value
+        self.max_linear = self.get_parameter('max_linear').value
+        odom_rate = self.get_parameter('odom_rate_hz').value
+        self.min_throttle = self.get_parameter('min_throttle').value
+        self.reverse_direction = self.get_parameter('reverse_direction').value
+        self.swap_motors = self.get_parameter('swap_motors').value
+        self.left_gain = float(self.get_parameter('left_gain').value)
+        self.right_gain = float(self.get_parameter('right_gain').value)
 
-        # El timer corre al doble de la frecuencia de la camara para no
-        # perder frames por desfases entre el reloj del timer y el de la camara.
-        self.create_timer(0.5 / self.fps, self.timer_callback)
+        # Velocidad comandada actualmente (la que llega por /cmd_vel)
+        self.current_linear = 0.0
+        self.current_angular = 0.0
+
+        # Pose estimada (lazo abierto, sin encoders)
+        self.x = 0.0
+        self.y = 0.0
+        self.theta = 0.0
+
+        self.subscription = self.create_subscription(
+            Twist, '/cmd_vel', self.cmd_vel_callback, 10)
+
+        self.odom_publisher = self.create_publisher(Odometry, '/odom', 10)
+        self.tf_broadcaster = TransformBroadcaster(self)
+
+        # Watchdog: si no llega cmd_vel en 0.5s, para los motores (seguridad)
+        self.last_cmd_time = self.get_clock().now()
+        self.create_timer(0.1, self.watchdog_check)
+
+        # Timer de integración de odometría, a frecuencia fija
+        self.last_odom_time = self.get_clock().now()
+        self.create_timer(1.0 / odom_rate, self.update_odometry)
+
         self.get_logger().info(
-            f'oak_camera_node iniciado ({self.width}x{self.height} @ {self.fps} fps), '
-            f'publicando en /oak/rgb/image_raw (QoS sensor_data / best effort)')
+            f'motor_driver_node iniciado (wheel_separation={self.wheel_separation}, '
+            f'max_linear={self.max_linear}, min_throttle={self.min_throttle}, '
+            f'reverse_direction={self.reverse_direction}, swap_motors={self.swap_motors}, '
+            f'left_gain={self.left_gain}, right_gain={self.right_gain})')
 
-    def build_pipeline(self):
-        pipeline = dai.Pipeline()
+    def compensate_deadband(self, throttle):
+        if throttle == 0.0:
+            return 0.0
+        sign = 1.0 if throttle > 0 else -1.0
+        magnitude = abs(throttle)
+        # Reescala la magnitud de [0,1] a [min_throttle, 1], preservando proporcionalidad
+        compensated = self.min_throttle + magnitude * (1.0 - self.min_throttle)
+        return sign * min(compensated, 1.0)
 
-        # --- Camara RGB unicamente ---
-        # La camara ya va por USB 3, asi que cuando haga falta se puede volver
-        # a anadir aqui el bloque estereo / profundidad.
-        cam_rgb = pipeline.create(dai.node.ColorCamera)
-        cam_rgb.setPreviewSize(self.width, self.height)
-        # Interleaved=True: la camara entrega HxWx3 listo para usar,
-        # sin que el host tenga que convertir de planar a interleaved.
-        cam_rgb.setInterleaved(True)
-        cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-        cam_rgb.setFps(self.fps)
+    def set_wheels(self, left, right):
+        """Envia el throttle de cada rueda (marco del robot) al motor fisico."""
+        left = max(-1.0, min(1.0, left * self.left_gain))
+        right = max(-1.0, min(1.0, right * self.right_gain))
+        motor_a, motor_b = left, right          # motor1 = izquierda, motor2 = derecha
+        if self.reverse_direction:
+            # Dar la vuelta al robot: cada motor gira al reves y la rueda
+            # que era la izquierda pasa a ser la derecha.
+            motor_a, motor_b = -right, -left
+        if self.swap_motors:
+            motor_a, motor_b = motor_b, motor_a
+        self.kit.motor1.throttle = motor_a
+        self.kit.motor2.throttle = motor_b
 
-        xout_rgb = pipeline.create(dai.node.XLinkOut)
-        xout_rgb.setStreamName('rgb')
-        cam_rgb.preview.link(xout_rgb.input)
+    def stop_motors(self):
+        self.kit.motor1.throttle = 0
+        self.kit.motor2.throttle = 0
 
-        return pipeline
+    def cmd_vel_callback(self, msg: Twist):
+        self.current_linear = msg.linear.x
+        self.current_angular = msg.angular.z
 
-    def timer_callback(self):
-        rgb_frame = self.rgb_queue.tryGet()
-        if rgb_frame is None:
-            return
+        v_left = self.current_linear - self.current_angular * (self.wheel_separation / 2.0)
+        v_right = self.current_linear + self.current_angular * (self.wheel_separation / 2.0)
 
-        now = self.get_clock().now().to_msg()
-        img_msg = frame_to_imgmsg(
-            rgb_frame.getFrame(), 'bgr8', 'oak_rgb_camera_optical_frame', now)
-        self.rgb_pub.publish(img_msg)
+        throttle_left = max(-1.0, min(1.0, v_left / self.max_linear))
+        throttle_right = max(-1.0, min(1.0, v_right / self.max_linear))
 
-    def destroy_node(self):
-        self.device.close()
-        super().destroy_node()
+        throttle_left = self.compensate_deadband(throttle_left)
+        throttle_right = self.compensate_deadband(throttle_right)
+
+        self.set_wheels(throttle_left, throttle_right)
+
+        self.last_cmd_time = self.get_clock().now()
+
+    def watchdog_check(self):
+        elapsed = (self.get_clock().now() - self.last_cmd_time).nanoseconds / 1e9
+        if elapsed > 0.5:
+            self.stop_motors()
+            self.current_linear = 0.0
+            self.current_angular = 0.0
+
+    def update_odometry(self):
+        now = self.get_clock().now()
+        dt = (now - self.last_odom_time).nanoseconds / 1e9
+        self.last_odom_time = now
+
+        # Integración simple (Euler) de la pose, usando la velocidad comandada
+        delta_theta = self.current_angular * dt
+        delta_x = self.current_linear * math.cos(self.theta) * dt
+        delta_y = self.current_linear * math.sin(self.theta) * dt
+
+        self.x += delta_x
+        self.y += delta_y
+        self.theta += delta_theta
+
+        # Cuaternión solo con yaw (rotación en el plano)
+        qz = math.sin(self.theta / 2.0)
+        qw = math.cos(self.theta / 2.0)
+
+        # Publica el mensaje de odometría
+        odom_msg = Odometry()
+        odom_msg.header.stamp = now.to_msg()
+        odom_msg.header.frame_id = 'odom'
+        odom_msg.child_frame_id = 'base_link'
+
+        odom_msg.pose.pose.position.x = self.x
+        odom_msg.pose.pose.position.y = self.y
+        odom_msg.pose.pose.position.z = 0.0
+        odom_msg.pose.pose.orientation = Quaternion(x=0.0, y=0.0, z=qz, w=qw)
+
+        odom_msg.twist.twist.linear.x = self.current_linear
+        odom_msg.twist.twist.angular.z = self.current_angular
+
+        self.odom_publisher.publish(odom_msg)
+
+        # Publica la transformada TF odom -> base_link
+        t = TransformStamped()
+        t.header.stamp = now.to_msg()
+        t.header.frame_id = 'odom'
+        t.child_frame_id = 'base_link'
+        t.transform.translation.x = self.x
+        t.transform.translation.y = self.y
+        t.transform.translation.z = 0.0
+        t.transform.rotation = Quaternion(x=0.0, y=0.0, z=qz, w=qw)
+
+        self.tf_broadcaster.sendTransform(t)
 
 
 def main():
     rclpy.init()
-    node = OakCameraNode()
+    node = MotorDriverNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:
+        # La PCA9685 mantiene el último PWM: hay que parar los motores al salir
+        node.stop_motors()
         node.destroy_node()
         rclpy.shutdown()
 

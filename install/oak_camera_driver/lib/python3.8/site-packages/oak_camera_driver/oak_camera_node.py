@@ -1,18 +1,19 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 import depthai as dai
 
 
-def cv2_to_imgmsg(cv_image, encoding, frame_id, stamp):
+def frame_to_imgmsg(frame, encoding, frame_id, stamp):
     """Construye un sensor_msgs/Image manualmente, sin depender de cv_bridge."""
     msg = Image()
-    msg.height = cv_image.shape[0]
-    msg.width = cv_image.shape[1]
+    msg.height = frame.shape[0]
+    msg.width = frame.shape[1]
     msg.encoding = encoding
     msg.is_bigendian = 0
-    msg.step = int(cv_image.strides[0])
-    msg.data = cv_image.tobytes()
+    msg.step = int(frame.strides[0])
+    msg.data = frame.tobytes()
     msg.header.frame_id = frame_id
     msg.header.stamp = stamp
     return msg
@@ -22,30 +23,48 @@ class OakCameraNode(Node):
     def __init__(self):
         super().__init__('oak_camera_node')
 
-        self.declare_parameter('fps', 30.0)
-        fps = self.get_parameter('fps').value
+        self.declare_parameter('fps', 15)
+        self.declare_parameter('width', 320)
+        self.declare_parameter('height', 240)
+        self.fps = int(self.get_parameter('fps').value)
+        self.width = int(self.get_parameter('width').value)
+        self.height = int(self.get_parameter('height').value)
+        # La cámara está montada boca abajo: la propia OAK-D gira la imagen 180°.
+        self.declare_parameter('upside_down', True)
+        self.upside_down = bool(self.get_parameter('upside_down').value)
 
-        self.rgb_pub = self.create_publisher(Image, '/oak/rgb/image_raw', 10)
+        # QoS de sensor (best effort, cola pequeña): mucho mas barato que
+        # el reliable por defecto al publicar imagenes en la Jetson Nano.
+        self.rgb_pub = self.create_publisher(
+            Image, '/oak/rgb/image_raw', qos_profile_sensor_data)
 
         self.pipeline = self.build_pipeline()
         self.device = dai.Device(self.pipeline)
-        self.rgb_queue = self.device.getOutputQueue(name='rgb', maxSize=4, blocking=False)
+        self.rgb_queue = self.device.getOutputQueue(
+            name='rgb', maxSize=2, blocking=False)
 
-        self.create_timer(1.0 / fps, self.timer_callback)
-        self.get_logger().info('oak_camera_node iniciado, publicando en /oak/rgb/image_raw y /oak/depth/image_raw')
+        # El timer corre al doble de la frecuencia de la camara para no
+        # perder frames por desfases entre el reloj del timer y el de la camara.
+        self.create_timer(0.5 / self.fps, self.timer_callback)
+        self.get_logger().info(
+            f'oak_camera_node iniciado ({self.width}x{self.height} @ {self.fps} fps), '
+            f'publicando en /oak/rgb/image_raw (QoS sensor_data / best effort)')
 
     def build_pipeline(self):
         pipeline = dai.Pipeline()
 
-        # --- Cámara RGB únicamente, en baja resolución ---
-        # (el pipeline de estéreo/profundidad se ha quitado temporalmente:
-        # con USB2 no hay ancho de banda para RGB + 2 cámaras mono + profundidad a la vez.
-        # Cuando se resuelva el tema de USB3, se puede volver a añadir el bloque estéreo.)
+        # --- Camara RGB unicamente ---
+        # La camara ya va por USB 3, asi que cuando haga falta se puede volver
+        # a anadir aqui el bloque estereo / profundidad.
         cam_rgb = pipeline.create(dai.node.ColorCamera)
-        cam_rgb.setPreviewSize(320, 240)
-        cam_rgb.setInterleaved(False)
+        cam_rgb.setPreviewSize(self.width, self.height)
+        # Interleaved=True: la camara entrega HxWx3 listo para usar,
+        # sin que el host tenga que convertir de planar a interleaved.
+        cam_rgb.setInterleaved(True)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-        cam_rgb.setFps(15)
+        cam_rgb.setFps(self.fps)
+        if self.upside_down:
+            cam_rgb.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
         xout_rgb = pipeline.create(dai.node.XLinkOut)
         xout_rgb.setStreamName('rgb')
@@ -54,13 +73,14 @@ class OakCameraNode(Node):
         return pipeline
 
     def timer_callback(self):
-        now = self.get_clock().now().to_msg()
-
         rgb_frame = self.rgb_queue.tryGet()
-        if rgb_frame is not None:
-            img_msg = cv2_to_imgmsg(
-                rgb_frame.getCvFrame(), 'bgr8', 'oak_rgb_camera_optical_frame', now)
-            self.rgb_pub.publish(img_msg)
+        if rgb_frame is None:
+            return
+
+        now = self.get_clock().now().to_msg()
+        img_msg = frame_to_imgmsg(
+            rgb_frame.getFrame(), 'bgr8', 'oak_rgb_camera_optical_frame', now)
+        self.rgb_pub.publish(img_msg)
 
     def destroy_node(self):
         self.device.close()

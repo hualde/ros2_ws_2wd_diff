@@ -1,0 +1,28 @@
+[4.461s] Invoking command in '/home/jetson/ros2_ws/src/oak_camera_driver': PYTHONPATH=/home/jetson/ros2_ws/build/oak_camera_driver/prefix_override:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/oak_camera_driver build --build-base /home/jetson/ros2_ws/build/oak_camera_driver/build install --record /home/jetson/ros2_ws/build/oak_camera_driver/install.log --single-version-externally-managed
+[5.692s] running egg_info
+[5.695s] writing ../../build/oak_camera_driver/oak_camera_driver.egg-info/PKG-INFO
+[5.695s] writing dependency_links to ../../build/oak_camera_driver/oak_camera_driver.egg-info/dependency_links.txt
+[5.696s] writing entry points to ../../build/oak_camera_driver/oak_camera_driver.egg-info/entry_points.txt
+[5.697s] writing requirements to ../../build/oak_camera_driver/oak_camera_driver.egg-info/requires.txt
+[5.697s] writing top-level names to ../../build/oak_camera_driver/oak_camera_driver.egg-info/top_level.txt
+[5.711s] reading manifest file '../../build/oak_camera_driver/oak_camera_driver.egg-info/SOURCES.txt'
+[5.715s] writing manifest file '../../build/oak_camera_driver/oak_camera_driver.egg-info/SOURCES.txt'
+[5.716s] running build
+[5.716s] running build_py
+[5.717s] copying oak_camera_driver/oak_spatial_grid_node.py -> /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver
+[5.718s] copying oak_camera_driver/oak_camera_node.py -> /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver
+[5.719s] running install
+[5.722s] running install_lib
+[5.726s] copying /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver/oak_spatial_grid_node.py -> /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver
+[5.727s] copying /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver/oak_camera_node.py -> /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver
+[5.729s] byte-compiling /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver/oak_spatial_grid_node.py to oak_spatial_grid_node.cpython-38.pyc
+[5.733s] byte-compiling /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver/oak_camera_node.py to oak_camera_node.cpython-38.pyc
+[5.740s] running install_data
+[5.742s] running install_egg_info
+[5.748s] removing '/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver-0.0.0-py3.8.egg-info' (and everything under it)
+[5.749s] Copying ../../build/oak_camera_driver/oak_camera_driver.egg-info to /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver-0.0.0-py3.8.egg-info
+[5.753s] running install_scripts
+[5.833s] Installing oak_camera_node script to /home/jetson/ros2_ws/install/oak_camera_driver/lib/oak_camera_driver
+[5.834s] Installing oak_spatial_grid_node script to /home/jetson/ros2_ws/install/oak_camera_driver/lib/oak_camera_driver
+[5.835s] writing list of installed files to '/home/jetson/ros2_ws/build/oak_camera_driver/install.log'
+[6.038s] Invoked command in '/home/jetson/ros2_ws/src/oak_camera_driver' returned '0': PYTHONPATH=/home/jetson/ros2_ws/build/oak_camera_driver/prefix_override:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/oak_camera_driver build --build-base /home/jetson/ros2_ws/build/oak_camera_driver/build install --record /home/jetson/ros2_ws/build/oak_camera_driver/install.log --single-version-externally-managed

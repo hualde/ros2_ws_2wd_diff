@@ -1,0 +1,39 @@
+[4.467s] Invoking command in '/home/jetson/ros2_ws/src/obstacle_stop': AMENT_PREFIX_PATH=/home/jetson/ros2_ws/install/oak_camera_driver:/home/jetson/ros2_ws/install/robot_description:/home/jetson/ros2_ws/install/motor_driver:/opt/ros/foxy PYTHONPATH=/home/jetson/ros2_ws/build/obstacle_stop/prefix_override:/home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages:/opt/ros/foxy/lib/python3.8/site-packages /usr/bin/python3 setup.py egg_info --egg-base ../../build/obstacle_stop build --build-base /home/jetson/ros2_ws/build/obstacle_stop/build install --record /home/jetson/ros2_ws/build/obstacle_stop/install.log --single-version-externally-managed
+[5.698s] running egg_info
+[5.700s] creating ../../build/obstacle_stop/obstacle_stop.egg-info
+[5.701s] writing ../../build/obstacle_stop/obstacle_stop.egg-info/PKG-INFO
+[5.702s] writing dependency_links to ../../build/obstacle_stop/obstacle_stop.egg-info/dependency_links.txt
+[5.702s] writing entry points to ../../build/obstacle_stop/obstacle_stop.egg-info/entry_points.txt
+[5.703s] writing requirements to ../../build/obstacle_stop/obstacle_stop.egg-info/requires.txt
+[5.703s] writing top-level names to ../../build/obstacle_stop/obstacle_stop.egg-info/top_level.txt
+[5.710s] writing manifest file '../../build/obstacle_stop/obstacle_stop.egg-info/SOURCES.txt'
+[5.717s] reading manifest file '../../build/obstacle_stop/obstacle_stop.egg-info/SOURCES.txt'
+[5.721s] writing manifest file '../../build/obstacle_stop/obstacle_stop.egg-info/SOURCES.txt'
+[5.721s] running build
+[5.722s] running build_py
+[5.723s] creating /home/jetson/ros2_ws/build/obstacle_stop/build
+[5.723s] creating /home/jetson/ros2_ws/build/obstacle_stop/build/lib
+[5.724s] creating /home/jetson/ros2_ws/build/obstacle_stop/build/lib/obstacle_stop
+[5.724s] copying obstacle_stop/obstacle_stop_node.py -> /home/jetson/ros2_ws/build/obstacle_stop/build/lib/obstacle_stop
+[5.724s] copying obstacle_stop/__init__.py -> /home/jetson/ros2_ws/build/obstacle_stop/build/lib/obstacle_stop
+[5.725s] running install
+[5.727s] running install_lib
+[5.730s] creating /home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages/obstacle_stop
+[5.731s] copying /home/jetson/ros2_ws/build/obstacle_stop/build/lib/obstacle_stop/obstacle_stop_node.py -> /home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages/obstacle_stop
+[5.731s] copying /home/jetson/ros2_ws/build/obstacle_stop/build/lib/obstacle_stop/__init__.py -> /home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages/obstacle_stop
+[5.733s] byte-compiling /home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages/obstacle_stop/obstacle_stop_node.py to obstacle_stop_node.cpython-38.pyc
+[5.737s] byte-compiling /home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages/obstacle_stop/__init__.py to __init__.cpython-38.pyc
+[5.738s] running install_data
+[5.740s] creating /home/jetson/ros2_ws/install/obstacle_stop/share/ament_index
+[5.741s] creating /home/jetson/ros2_ws/install/obstacle_stop/share/ament_index/resource_index
+[5.742s] creating /home/jetson/ros2_ws/install/obstacle_stop/share/ament_index/resource_index/packages
+[5.742s] copying resource/obstacle_stop -> /home/jetson/ros2_ws/install/obstacle_stop/share/ament_index/resource_index/packages
+[5.743s] copying package.xml -> /home/jetson/ros2_ws/install/obstacle_stop/share/obstacle_stop
+[5.743s] creating /home/jetson/ros2_ws/install/obstacle_stop/share/obstacle_stop/launch
+[5.743s] copying launch/obstacle_stop.launch.py -> /home/jetson/ros2_ws/install/obstacle_stop/share/obstacle_stop/launch
+[5.744s] running install_egg_info
+[5.748s] Copying ../../build/obstacle_stop/obstacle_stop.egg-info to /home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages/obstacle_stop-0.1.0-py3.8.egg-info
+[5.752s] running install_scripts
+[5.835s] Installing obstacle_stop_node script to /home/jetson/ros2_ws/install/obstacle_stop/lib/obstacle_stop
+[5.836s] writing list of installed files to '/home/jetson/ros2_ws/build/obstacle_stop/install.log'
+[5.945s] Invoked command in '/home/jetson/ros2_ws/src/obstacle_stop' returned '0': AMENT_PREFIX_PATH=/home/jetson/ros2_ws/install/oak_camera_driver:/home/jetson/ros2_ws/install/robot_description:/home/jetson/ros2_ws/install/motor_driver:/opt/ros/foxy PYTHONPATH=/home/jetson/ros2_ws/build/obstacle_stop/prefix_override:/home/jetson/ros2_ws/install/obstacle_stop/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages:/opt/ros/foxy/lib/python3.8/site-packages /usr/bin/python3 setup.py egg_info --egg-base ../../build/obstacle_stop build --build-base /home/jetson/ros2_ws/build/obstacle_stop/build install --record /home/jetson/ros2_ws/build/obstacle_stop/install.log --single-version-externally-managed

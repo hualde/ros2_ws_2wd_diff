@@ -1,0 +1,21 @@
+[3.057s] Invoking command in '/home/jetson/ros2_ws/src/robot_description': AMENT_PREFIX_PATH=/home/jetson/ros2_ws/install/motor_driver:/home/jetson/ros2_ws/install/robot_description:/home/jetson/ros2_ws/install/oak_camera_driver:/opt/ros/foxy PYTHONPATH=/home/jetson/ros2_ws/build/robot_description/prefix_override:/home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:/opt/ros/foxy/lib/python3.8/site-packages /usr/bin/python3 setup.py egg_info --egg-base ../../build/robot_description build --build-base /home/jetson/ros2_ws/build/robot_description/build install --record /home/jetson/ros2_ws/build/robot_description/install.log --single-version-externally-managed
+[4.223s] running egg_info
+[4.225s] writing ../../build/robot_description/robot_description.egg-info/PKG-INFO
+[4.227s] writing dependency_links to ../../build/robot_description/robot_description.egg-info/dependency_links.txt
+[4.228s] writing entry points to ../../build/robot_description/robot_description.egg-info/entry_points.txt
+[4.228s] writing requirements to ../../build/robot_description/robot_description.egg-info/requires.txt
+[4.228s] writing top-level names to ../../build/robot_description/robot_description.egg-info/top_level.txt
+[4.239s] reading manifest file '../../build/robot_description/robot_description.egg-info/SOURCES.txt'
+[4.243s] writing manifest file '../../build/robot_description/robot_description.egg-info/SOURCES.txt'
+[4.243s] running build
+[4.243s] running build_py
+[4.244s] running install
+[4.247s] running install_lib
+[4.251s] running install_data
+[4.254s] copying urdf/robot.urdf -> /home/jetson/ros2_ws/install/robot_description/share/robot_description/urdf
+[4.255s] running install_egg_info
+[4.261s] removing '/home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages/robot_description-0.1.0-py3.8.egg-info' (and everything under it)
+[4.262s] Copying ../../build/robot_description/robot_description.egg-info to /home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages/robot_description-0.1.0-py3.8.egg-info
+[4.265s] running install_scripts
+[4.336s] writing list of installed files to '/home/jetson/ros2_ws/build/robot_description/install.log'
+[4.432s] Invoked command in '/home/jetson/ros2_ws/src/robot_description' returned '0': AMENT_PREFIX_PATH=/home/jetson/ros2_ws/install/motor_driver:/home/jetson/ros2_ws/install/robot_description:/home/jetson/ros2_ws/install/oak_camera_driver:/opt/ros/foxy PYTHONPATH=/home/jetson/ros2_ws/build/robot_description/prefix_override:/home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/robot_description/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:/opt/ros/foxy/lib/python3.8/site-packages /usr/bin/python3 setup.py egg_info --egg-base ../../build/robot_description build --build-base /home/jetson/ros2_ws/build/robot_description/build install --record /home/jetson/ros2_ws/build/robot_description/install.log --single-version-externally-managed

@@ -1,0 +1,24 @@
+[4.658s] Invoking command in '/home/jetson/ros2_ws/src/motor_driver': PYTHONPATH=/home/jetson/ros2_ws/build/motor_driver/prefix_override:/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/motor_driver build --build-base /home/jetson/ros2_ws/build/motor_driver/build install --record /home/jetson/ros2_ws/build/motor_driver/install.log --single-version-externally-managed
+[5.881s] running egg_info
+[5.884s] writing ../../build/motor_driver/motor_driver.egg-info/PKG-INFO
+[5.886s] writing dependency_links to ../../build/motor_driver/motor_driver.egg-info/dependency_links.txt
+[5.886s] writing entry points to ../../build/motor_driver/motor_driver.egg-info/entry_points.txt
+[5.887s] writing requirements to ../../build/motor_driver/motor_driver.egg-info/requires.txt
+[5.888s] writing top-level names to ../../build/motor_driver/motor_driver.egg-info/top_level.txt
+[5.910s] reading manifest file '../../build/motor_driver/motor_driver.egg-info/SOURCES.txt'
+[5.915s] writing manifest file '../../build/motor_driver/motor_driver.egg-info/SOURCES.txt'
+[5.916s] running build
+[5.917s] running build_py
+[5.917s] copying motor_driver/motor_driver_node.py -> /home/jetson/ros2_ws/build/motor_driver/build/lib/motor_driver
+[5.918s] running install
+[5.920s] running install_lib
+[5.924s] copying /home/jetson/ros2_ws/build/motor_driver/build/lib/motor_driver/motor_driver_node.py -> /home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages/motor_driver
+[5.926s] byte-compiling /home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages/motor_driver/motor_driver_node.py to motor_driver_node.cpython-38.pyc
+[5.930s] running install_data
+[5.933s] running install_egg_info
+[5.939s] removing '/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages/motor_driver-0.0.0-py3.8.egg-info' (and everything under it)
+[5.941s] Copying ../../build/motor_driver/motor_driver.egg-info to /home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages/motor_driver-0.0.0-py3.8.egg-info
+[5.945s] running install_scripts
+[6.020s] Installing motor_driver_node script to /home/jetson/ros2_ws/install/motor_driver/lib/motor_driver
+[6.022s] writing list of installed files to '/home/jetson/ros2_ws/build/motor_driver/install.log'
+[6.221s] Invoked command in '/home/jetson/ros2_ws/src/motor_driver' returned '0': PYTHONPATH=/home/jetson/ros2_ws/build/motor_driver/prefix_override:/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/motor_driver build --build-base /home/jetson/ros2_ws/build/motor_driver/build install --record /home/jetson/ros2_ws/build/motor_driver/install.log --single-version-externally-managed
