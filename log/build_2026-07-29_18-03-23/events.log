@@ -1,0 +1,89 @@
+[0.000000] (-) TimerEvent: {}
+[0.004054] (-) JobUnselected: {'identifier': 'motor_driver'}
+[0.004342] (oak_camera_driver) JobQueued: {'identifier': 'oak_camera_driver', 'dependencies': OrderedDict()}
+[0.004475] (oak_camera_driver) JobStarted: {'identifier': 'oak_camera_driver'}
+[0.096295] (-) TimerEvent: {}
+[0.197134] (-) TimerEvent: {}
+[0.297758] (-) TimerEvent: {}
+[0.398386] (-) TimerEvent: {}
+[0.499015] (-) TimerEvent: {}
+[0.599629] (-) TimerEvent: {}
+[0.700252] (-) TimerEvent: {}
+[0.800862] (-) TimerEvent: {}
+[0.901466] (-) TimerEvent: {}
+[1.002090] (-) TimerEvent: {}
+[1.102713] (-) TimerEvent: {}
+[1.203347] (-) TimerEvent: {}
+[1.304740] (-) TimerEvent: {}
+[1.405539] (-) TimerEvent: {}
+[1.506384] (-) TimerEvent: {}
+[1.606994] (-) TimerEvent: {}
+[1.707604] (-) TimerEvent: {}
+[1.808231] (-) TimerEvent: {}
+[1.908795] (-) TimerEvent: {}
+[2.009390] (-) TimerEvent: {}
+[2.109958] (-) TimerEvent: {}
+[2.210544] (-) TimerEvent: {}
+[2.311148] (-) TimerEvent: {}
+[2.411763] (-) TimerEvent: {}
+[2.512320] (-) TimerEvent: {}
+[2.612947] (-) TimerEvent: {}
+[2.713570] (-) TimerEvent: {}
+[2.814202] (-) TimerEvent: {}
+[2.914877] (-) TimerEvent: {}
+[3.015750] (-) TimerEvent: {}
+[3.020227] (oak_camera_driver) Command: {'cmd': ['/usr/bin/python3', 'setup.py', 'egg_info', '--egg-base', '../../build/oak_camera_driver', 'build', '--build-base', '/home/jetson/ros2_ws/build/oak_camera_driver/build', 'install', '--record', '/home/jetson/ros2_ws/build/oak_camera_driver/install.log', '--install-scripts', '$base/lib/oak_camera_driver', '--single-version-externally-managed'], 'cwd': '/home/jetson/ros2_ws/src/oak_camera_driver', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'jetson', 'SSH_CLIENT': '192.168.1.44 48642 22', 'LC_TIME': 'nl_NL.UTF-8', 'XDG_SESSION_TYPE': 'tty', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/foxy/opt/yaml_cpp_vendor/lib:/opt/ros/foxy/opt/rviz_ogre_vendor/lib:/opt/ros/foxy/lib/aarch64-linux-gnu:/opt/ros/foxy/lib', 'MOTD_SHOWN': 'pam', 'HOME': '/home/jetson', 'OLDPWD': '/home/jetson/ros2_ws', 'SSH_TTY': '/dev/pts/0', 'JETSON_L4T': '32.6.1', 'ROS_PYTHON_VERSION': '3', 'JETSON_MODEL': 'NVIDIA Jetson Nano Developer Kit', 'LC_MONETARY': 'nl_NL.UTF-8', 'ROS_STATIC_PEERS': '192.168.1.44', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLCON_PREFIX_PATH': '/home/jetson/ros2_ws/install', 'ROS_DISTRO': 'foxy', 'LOGNAME': 'jetson', 'JETSON_MODULE': 'NVIDIA Jetson Nano (4 GB ram)', 'JETSON_SERIAL_NUMBER': '1420121086725', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'JETSON_CODENAME': 'Porg', 'XDG_SESSION_CLASS': 'user', 'TERM': 'xterm-256color', 'XDG_SESSION_ID': '3', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/home/jetson/.local/bin:/opt/ros/foxy/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'LC_ADDRESS': 'nl_NL.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'LANG': 'en_US.UTF-8', 'LC_TELEPHONE': 'nl_NL.UTF-8', 'RMW_IMPLEMENTATION': 'rmw_fastrtps_cpp', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'JETSON_SOC': 'tegra210', 'ROS_DOMAIN_ID': '42', 'AMENT_PREFIX_PATH': '/home/jetson/ros2_ws/install/motor_driver:/opt/ros/foxy', 'SHELL': '/bin/bash', 'LC_NAME': 'nl_NL.UTF-8', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'JETSON_BOARDIDS': 'p3448', 'LC_MEASUREMENT': 'nl_NL.UTF-8', 'LC_IDENTIFICATION': 'nl_NL.UTF-8', 'JETSON_CUDA_ARCH_BIN': '5.3', 'PWD': '/home/jetson/ros2_ws/build/oak_camera_driver', 'LC_ALL': 'en_US.UTF-8', 'SSH_CONNECTION': '192.168.1.44 48642 192.168.1.34 22', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/jetson/ros2_ws/build/oak_camera_driver/prefix_override:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages:/home/jetson/ros2_ws/install/motor_driver/lib/python3.8/site-packages:/opt/ros/foxy/lib/python3.8/site-packages', 'LC_NUMERIC': 'nl_NL.UTF-8', 'LC_PAPER': 'nl_NL.UTF-8', 'COLCON': '1', 'JETSON_JETPACK': '4.6', 'JETSON_P_NUMBER': 'p3448-0000'}, 'shell': False}
+[3.116032] (-) TimerEvent: {}
+[3.216908] (-) TimerEvent: {}
+[3.317466] (-) TimerEvent: {}
+[3.418076] (-) TimerEvent: {}
+[3.518679] (-) TimerEvent: {}
+[3.619277] (-) TimerEvent: {}
+[3.719821] (-) TimerEvent: {}
+[3.820482] (-) TimerEvent: {}
+[3.921026] (-) TimerEvent: {}
+[4.021585] (-) TimerEvent: {}
+[4.039980] (oak_camera_driver) StderrLine: {'line': b"/usr/local/lib/python3.8/dist-packages/setuptools/dist.py:717: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead\n"}
+[4.040805] (oak_camera_driver) StderrLine: {'line': b'  warnings.warn(\n'}
+[4.121725] (-) TimerEvent: {}
+[4.160979] (oak_camera_driver) StdoutLine: {'line': b'running egg_info\n'}
+[4.163902] (oak_camera_driver) StdoutLine: {'line': b'creating ../../build/oak_camera_driver/oak_camera_driver.egg-info\n'}
+[4.164748] (oak_camera_driver) StdoutLine: {'line': b'writing ../../build/oak_camera_driver/oak_camera_driver.egg-info/PKG-INFO\n'}
+[4.165331] (oak_camera_driver) StdoutLine: {'line': b'writing dependency_links to ../../build/oak_camera_driver/oak_camera_driver.egg-info/dependency_links.txt\n'}
+[4.165781] (oak_camera_driver) StdoutLine: {'line': b'writing entry points to ../../build/oak_camera_driver/oak_camera_driver.egg-info/entry_points.txt\n'}
+[4.166393] (oak_camera_driver) StdoutLine: {'line': b'writing requirements to ../../build/oak_camera_driver/oak_camera_driver.egg-info/requires.txt\n'}
+[4.166769] (oak_camera_driver) StdoutLine: {'line': b'writing top-level names to ../../build/oak_camera_driver/oak_camera_driver.egg-info/top_level.txt\n'}
+[4.172260] (oak_camera_driver) StdoutLine: {'line': b"writing manifest file '../../build/oak_camera_driver/oak_camera_driver.egg-info/SOURCES.txt'\n"}
+[4.178132] (oak_camera_driver) StdoutLine: {'line': b"reading manifest file '../../build/oak_camera_driver/oak_camera_driver.egg-info/SOURCES.txt'\n"}
+[4.181216] (oak_camera_driver) StdoutLine: {'line': b"writing manifest file '../../build/oak_camera_driver/oak_camera_driver.egg-info/SOURCES.txt'\n"}
+[4.182009] (oak_camera_driver) StdoutLine: {'line': b'running build\n'}
+[4.182418] (oak_camera_driver) StdoutLine: {'line': b'running build_py\n'}
+[4.183075] (oak_camera_driver) StdoutLine: {'line': b'creating /home/jetson/ros2_ws/build/oak_camera_driver/build\n'}
+[4.183586] (oak_camera_driver) StdoutLine: {'line': b'creating /home/jetson/ros2_ws/build/oak_camera_driver/build/lib\n'}
+[4.184071] (oak_camera_driver) StdoutLine: {'line': b'creating /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver\n'}
+[4.184494] (oak_camera_driver) StdoutLine: {'line': b'copying oak_camera_driver/oak_camera_node.py -> /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver\n'}
+[4.184931] (oak_camera_driver) StdoutLine: {'line': b'copying oak_camera_driver/__init__.py -> /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver\n'}
+[4.185268] (oak_camera_driver) StdoutLine: {'line': b'running install\n'}
+[4.187302] (oak_camera_driver) StdoutLine: {'line': b'running install_lib\n'}
+[4.191137] (oak_camera_driver) StdoutLine: {'line': b'creating /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver\n'}
+[4.191658] (oak_camera_driver) StdoutLine: {'line': b'copying /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver/oak_camera_node.py -> /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver\n'}
+[4.192066] (oak_camera_driver) StdoutLine: {'line': b'copying /home/jetson/ros2_ws/build/oak_camera_driver/build/lib/oak_camera_driver/__init__.py -> /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver\n'}
+[4.193815] (oak_camera_driver) StdoutLine: {'line': b'byte-compiling /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver/oak_camera_node.py to oak_camera_node.cpython-38.pyc\n'}
+[4.196568] (oak_camera_driver) StdoutLine: {'line': b'byte-compiling /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver/__init__.py to __init__.cpython-38.pyc\n'}
+[4.197190] (oak_camera_driver) StdoutLine: {'line': b'running install_data\n'}
+[4.199158] (oak_camera_driver) StdoutLine: {'line': b'creating /home/jetson/ros2_ws/install/oak_camera_driver/share/ament_index\n'}
+[4.199669] (oak_camera_driver) StdoutLine: {'line': b'creating /home/jetson/ros2_ws/install/oak_camera_driver/share/ament_index/resource_index\n'}
+[4.200068] (oak_camera_driver) StdoutLine: {'line': b'creating /home/jetson/ros2_ws/install/oak_camera_driver/share/ament_index/resource_index/packages\n'}
+[4.200502] (oak_camera_driver) StdoutLine: {'line': b'copying resource/oak_camera_driver -> /home/jetson/ros2_ws/install/oak_camera_driver/share/ament_index/resource_index/packages\n'}
+[4.200853] (oak_camera_driver) StdoutLine: {'line': b'copying package.xml -> /home/jetson/ros2_ws/install/oak_camera_driver/share/oak_camera_driver\n'}
+[4.201189] (oak_camera_driver) StdoutLine: {'line': b'running install_egg_info\n'}
+[4.205872] (oak_camera_driver) StdoutLine: {'line': b'Copying ../../build/oak_camera_driver/oak_camera_driver.egg-info to /home/jetson/ros2_ws/install/oak_camera_driver/lib/python3.8/site-packages/oak_camera_driver-0.0.0-py3.8.egg-info\n'}
+[4.209144] (oak_camera_driver) StdoutLine: {'line': b'running install_scripts\n'}
+[4.221930] (-) TimerEvent: {}
+[4.280485] (oak_camera_driver) StdoutLine: {'line': b'Installing oak_camera_node script to /home/jetson/ros2_ws/install/oak_camera_driver/lib/oak_camera_driver\n'}
+[4.281754] (oak_camera_driver) StdoutLine: {'line': b"writing list of installed files to '/home/jetson/ros2_ws/build/oak_camera_driver/install.log'\n"}
+[4.322099] (-) TimerEvent: {}
+[4.375382] (oak_camera_driver) CommandEnded: {'returncode': 0}
+[4.428575] (-) TimerEvent: {}
+[4.442408] (oak_camera_driver) JobEnded: {'identifier': 'oak_camera_driver', 'rc': 0}
+[4.444910] (-) EventReactorShutdown: {}
