@@ -13,7 +13,7 @@ def generate_launch_description():
             'max_linear', default_value='0.5',
             description='Velocidad lineal máxima en m/s (a throttle=1.0)'),
         DeclareLaunchArgument(
-            'min_throttle', default_value='0.35',
+            'min_throttle', default_value='0.6',
             description='Throttle mínimo para vencer el deadband de los motores'),
         DeclareLaunchArgument(
             'odom_rate_hz', default_value='20.0',

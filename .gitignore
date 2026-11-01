@@ -1,1 +1,8 @@
-/build
+# Generado por colcon
+/build/
+/install/
+/log/
+
+# Python
+__pycache__/
+*.pyc

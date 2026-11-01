@@ -12,6 +12,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     pkg_share = get_package_share_directory('robot_description')
     motor_share = get_package_share_directory('motor_driver')
+    camera_share = get_package_share_directory('rpi_camera')
 
     urdf_path = os.path.join(pkg_share, 'urdf', 'robot.urdf')
     with open(urdf_path, 'r') as f:
@@ -21,6 +22,10 @@ def generate_launch_description():
         'with_motors', default_value='true',
         description='Lanza tambien motor_driver_node (odometria y motores). '
                     'Ponlo a false para ver solo el modelo.')
+
+    with_camera_arg = DeclareLaunchArgument(
+        'with_camera', default_value='true',
+        description='Lanza tambien rpi_camera_node (imagen en /camera/image_raw).')
 
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -36,8 +41,16 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('with_motors')),
     )
 
+    camera = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(camera_share, 'launch', 'rpi_camera.launch.py')),
+        condition=IfCondition(LaunchConfiguration('with_camera')),
+    )
+
     return LaunchDescription([
         with_motors_arg,
+        with_camera_arg,
         robot_state_publisher,
         motor_driver,
+        camera,
     ])

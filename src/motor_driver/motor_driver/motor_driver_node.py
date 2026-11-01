@@ -21,7 +21,7 @@ class MotorDriverNode(Node):
         self.declare_parameter('wheel_separation', 0.125)
         self.declare_parameter('max_linear', 0.5)
         self.declare_parameter('odom_rate_hz', 20.0)
-        self.declare_parameter('min_throttle', 0.35)
+        self.declare_parameter('min_throttle', 0.6)
         # Orientacion del robot respecto al cableado de los motores:
         #   reverse_direction=True -> el "frente" pasa a ser el lado contrario
         #   (invierte el sentido de los dos motores e intercambia izquierda/derecha).

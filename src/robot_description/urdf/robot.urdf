@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Modelo del robot diferencial (Jetson Nano + FeatherWing + 2 motores TT + OAK-D Lite).
+  Modelo del robot diferencial (Jetson Nano + FeatherWing + 2 motores TT + camara Raspberry Pi v1.3).
 
   Frames:
     odom -> base_link         lo publica motor_driver_node (odometria)
@@ -97,27 +97,27 @@
     <origin xyz="-0.09 0 -0.02" rpy="0 0 0"/>
   </joint>
 
-  <!-- ====== Camara OAK-D Lite ====== -->
-  <link name="oak_camera_link">
+  <!-- ====== Camara Raspberry Pi v1.3 (CSI) ====== -->
+  <link name="camera_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><box size="0.02 0.09 0.03"/></geometry>
+      <geometry><box size="0.01 0.025 0.024"/></geometry>
       <material name="camera_color"/>
     </visual>
   </link>
-  <joint name="oak_camera_joint" type="fixed">
+  <joint name="camera_joint" type="fixed">
     <parent link="base_link"/>
-    <child link="oak_camera_link"/>
-    <!-- PROVISIONAL: la camara aun no esta montada. Ajustar cuando se fije. -->
-    <origin xyz="0.04 0 0.04" rpy="0 0 0"/>
+    <child link="camera_link"/>
+    <!-- PROVISIONAL: ajustar a donde quede montada la camara. -->
+    <origin xyz="0.04 0 0.0425" rpy="0 0 0"/>
   </joint>
 
-  <!-- Frame optico de la camara RGB: el que usa oak_camera_node en sus mensajes.
+  <!-- Frame optico: el que usa rpi_camera_node en sus mensajes.
        Convencion optica: Z hacia delante, X a la derecha, Y hacia abajo. -->
-  <link name="oak_rgb_camera_optical_frame"/>
-  <joint name="oak_rgb_camera_optical_joint" type="fixed">
-    <parent link="oak_camera_link"/>
-    <child link="oak_rgb_camera_optical_frame"/>
+  <link name="camera_optical_frame"/>
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical_frame"/>
     <origin xyz="0 0 0" rpy="-1.5707963 0 -1.5707963"/>
   </joint>
 
