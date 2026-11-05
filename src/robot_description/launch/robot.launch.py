@@ -13,6 +13,7 @@ def generate_launch_description():
     pkg_share = get_package_share_directory('robot_description')
     motor_share = get_package_share_directory('motor_driver')
     camera_share = get_package_share_directory('rpi_camera')
+    sllidar_share = get_package_share_directory('sllidar_ros2')
 
     urdf_path = os.path.join(pkg_share, 'urdf', 'robot.urdf')
     with open(urdf_path, 'r') as f:
@@ -26,6 +27,10 @@ def generate_launch_description():
     with_camera_arg = DeclareLaunchArgument(
         'with_camera', default_value='true',
         description='Lanza tambien rpi_camera_node (imagen en /camera/image_raw).')
+
+    with_lidar_arg = DeclareLaunchArgument(
+        'with_lidar', default_value='true',
+        description='Lanza tambien el RPLIDAR C1 (/scan, frame laser).')
 
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -47,10 +52,22 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('with_camera')),
     )
 
+    lidar = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(sllidar_share, 'launch', 'sllidar_c1_launch.py')),
+        launch_arguments={
+            'serial_port': '/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_b21cfaaeae31f111a5e4945f30d20014-if00-port0',
+            'frame_id': 'laser',
+        }.items(),
+        condition=IfCondition(LaunchConfiguration('with_lidar')),
+    )
+
     return LaunchDescription([
         with_motors_arg,
         with_camera_arg,
+        with_lidar_arg,
         robot_state_publisher,
         motor_driver,
         camera,
+        lidar,
     ])

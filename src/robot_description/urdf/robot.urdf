@@ -121,4 +121,19 @@
     <origin xyz="0 0 0" rpy="-1.5707963 0 -1.5707963"/>
   </joint>
 
+
+  <!-- RPLIDAR C1. z = 0.20 m del suelo - 0.0325 (radio rueda, base_link esta en el eje).
+       Cable hacia atras = yaw 0 (confirmado). PROVISIONAL: x/y por medir. -->
+  <link name="laser">
+    <visual>
+      <geometry><cylinder radius="0.028" length="0.04"/></geometry>
+      <material name="lidar_black"><color rgba="0.1 0.1 0.1 1"/></material>
+    </visual>
+  </link>
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser"/>
+    <origin xyz="0 0 0.1675" rpy="0 0 0"/>
+  </joint>
+
 </robot>
