@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mpu6050_imu</name>
+  <version>0.1.0</version>
+  <description>Nodo ROS 2 para el IMU MPU6050 por I2C (sensor_msgs/Imu).</description>
+  <maintainer email="jhualde@lizarte.com">jetson</maintainer>
+  <license>Apache-2.0</license>
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

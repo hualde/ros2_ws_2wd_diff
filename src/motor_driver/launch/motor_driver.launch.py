@@ -2,6 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -24,6 +25,9 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'right_gain', default_value='1.0',
             description='Ganancia de la rueda derecha (bajar si se desvía a la izquierda)'),
+        DeclareLaunchArgument(
+            'publish_tf', default_value='true',
+            description='Publicar el TF odom->base_link (false si lo publica el EKF)'),
     ]
 
     motor_driver_node = Node(
@@ -38,6 +42,7 @@ def generate_launch_description():
             'odom_rate_hz': LaunchConfiguration('odom_rate_hz'),
             'left_gain': LaunchConfiguration('left_gain'),
             'right_gain': LaunchConfiguration('right_gain'),
+            'publish_tf': ParameterValue(LaunchConfiguration('publish_tf'), value_type=bool),
         }]
     )
 

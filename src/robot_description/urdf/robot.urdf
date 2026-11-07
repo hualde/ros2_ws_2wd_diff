@@ -123,7 +123,7 @@
 
 
   <!-- RPLIDAR C1. z = 0.20 m del suelo - 0.0325 (radio rueda, base_link esta en el eje).
-       Cable hacia atras = yaw 0 (confirmado). PROVISIONAL: x/y por medir. -->
+       Hay que girarlo 180 grados: yaw = pi (confirmado por el usuario). PROVISIONAL: x/y por medir. -->
   <link name="laser">
     <visual>
       <geometry><cylinder radius="0.028" length="0.04"/></geometry>
@@ -133,7 +133,21 @@
   <joint name="laser_joint" type="fixed">
     <parent link="base_link"/>
     <child link="laser"/>
-    <origin xyz="0 0 0.1675" rpy="0 0 0"/>
+    <origin xyz="0 0 0.1675" rpy="0 0 3.14159265"/>
+  </joint>
+
+  <!-- IMU MPU6050 (I2C bus 1, 0x68), encima de la Jetson en un lateral.
+       Lado DERECHO del robot (y negativa; x/y exactas por medir). Ejes medidos 2026-11-07: X delante, Y izquierda, Z arriba (rpy 0). -->
+  <link name="imu_link">
+    <visual>
+      <geometry><box size="0.02 0.015 0.003"/></geometry>
+      <material name="imu_color"><color rgba="0.1 0.6 0.2 1"/></material>
+    </visual>
+  </link>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="-0.038 -0.03 0.067" rpy="0 0 0"/>
   </joint>
 
 </robot>

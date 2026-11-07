@@ -32,6 +32,8 @@ class MotorDriverNode(Node):
         # Si se desvia a la DERECHA, la rueda izquierda va mas rapida: baja left_gain.
         # Si se desvia a la IZQUIERDA, baja right_gain.
         self.declare_parameter('left_gain', 1.0)
+        # False cuando el EKF (robot_localization) publica odom->base_link
+        self.declare_parameter('publish_tf', True)
         self.declare_parameter('right_gain', 1.0)
 
         self.wheel_separation = self.get_parameter('wheel_separation').value
@@ -42,6 +44,7 @@ class MotorDriverNode(Node):
         self.swap_motors = self.get_parameter('swap_motors').value
         self.left_gain = float(self.get_parameter('left_gain').value)
         self.right_gain = float(self.get_parameter('right_gain').value)
+        self.publish_tf = bool(self.get_parameter('publish_tf').value)
 
         # Velocidad comandada actualmente (la que llega por /cmd_vel)
         self.current_linear = 0.0
@@ -155,7 +158,15 @@ class MotorDriverNode(Node):
         odom_msg.twist.twist.linear.x = self.current_linear
         odom_msg.twist.twist.angular.z = self.current_angular
 
+        # Covarianzas (sin encoders: la velocidad es la comandada, poco fiable)
+        odom_msg.twist.covariance[0] = 0.05     # vx
+        odom_msg.twist.covariance[35] = 1.0     # vyaw (el EKF usa el giroscopio)
+        odom_msg.pose.covariance[0] = 0.1
+        odom_msg.pose.covariance[7] = 0.1
+        odom_msg.pose.covariance[35] = 0.5
         self.odom_publisher.publish(odom_msg)
+        if not self.publish_tf:
+            return
 
         # Publica la transformada TF odom -> base_link
         t = TransformStamped()

@@ -5,7 +5,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 
@@ -13,6 +13,7 @@ def generate_launch_description():
     pkg_share = get_package_share_directory('robot_description')
     motor_share = get_package_share_directory('motor_driver')
     camera_share = get_package_share_directory('rpi_camera')
+    imu_share = get_package_share_directory('mpu6050_imu')
     sllidar_share = get_package_share_directory('sllidar_ros2')
 
     urdf_path = os.path.join(pkg_share, 'urdf', 'robot.urdf')
@@ -32,6 +33,15 @@ def generate_launch_description():
         'with_lidar', default_value='true',
         description='Lanza tambien el RPLIDAR C1 (/scan, frame laser).')
 
+    with_imu_arg = DeclareLaunchArgument(
+        'with_imu', default_value='true',
+        description='Lanza tambien el IMU MPU6050 (/imu/data_raw, frame imu_link).')
+
+    with_ekf_arg = DeclareLaunchArgument(
+        'with_ekf', default_value='true',
+        description='Lanza el EKF (odom + IMU) que publica odom->base_link. '
+                    'Si es false, lo publica motor_driver directamente.')
+
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -43,6 +53,10 @@ def generate_launch_description():
     motor_driver = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(motor_share, 'launch', 'motor_driver.launch.py')),
+        launch_arguments={
+            'publish_tf': PythonExpression(["'false' if '", LaunchConfiguration('with_ekf'),
+                                            "' == 'true' else 'true'"]),
+        }.items(),
         condition=IfCondition(LaunchConfiguration('with_motors')),
     )
 
@@ -62,12 +76,31 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('with_lidar')),
     )
 
+    imu = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(imu_share, 'launch', 'mpu6050.launch.py')),
+        condition=IfCondition(LaunchConfiguration('with_imu')),
+    )
+
+    ekf = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[os.path.join(pkg_share, 'config', 'ekf.yaml')],
+        condition=IfCondition(LaunchConfiguration('with_ekf')),
+    )
+
     return LaunchDescription([
         with_motors_arg,
         with_camera_arg,
         with_lidar_arg,
+        with_imu_arg,
+        with_ekf_arg,
         robot_state_publisher,
         motor_driver,
         camera,
         lidar,
+        imu,
+        ekf,
     ])

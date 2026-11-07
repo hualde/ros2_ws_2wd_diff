@@ -1,8 +1,8 @@
 # Robot diferencial con Jetson Nano y ROS 2 Foxy
 
 Robot diferencial de dos ruedas controlado con una **Jetson Nano 4GB** y **ROS 2 Foxy**.
-Objetivo: recorrer una zona de forma autónoma. La navegación se hará con un **lidar 2D**
-(pendiente de montar); mientras tanto el robot lleva una cámara Raspberry Pi para ver la imagen.
+Objetivo: **SLAM y navegación autónoma** con un **lidar 2D** (RPLIDAR C1). El robot lleva además
+un IMU (MPU6050) para mejorar la odometría y una cámara Raspberry Pi para ver la imagen.
 
 > La versión anterior con cámara OAK-D Lite (rejilla de profundidad, freno por obstáculos y
 > explorador autónomo) está en el historial de git (commit `770916a`).
@@ -11,13 +11,17 @@ Objetivo: recorrer una zona de forma autónoma. La navegación se hará con un *
 
 | Máquina | Función |
 |---|---|
-| **Jetson Nano** (`192.168.1.34`) | Va en el robot. Ejecuta los nodos de motores, cámara y modelo. ROS 2 Foxy nativo. |
+| **Jetson Nano** (`192.168.1.34`) | Va en el robot. Ejecuta los nodos de motores, lidar, IMU, EKF, cámara, modelo y SLAM. ROS 2 Foxy nativo. |
 | **PC (Omarchy)** | Estación de trabajo. Contenedor Docker `ros2_foxy` con RViz2, teleoperación y el puente de imagen. |
 
 ```
  JETSON NANO
    robot_state_publisher ── TF fijas del URDF
-   motor_driver_node     ── /cmd_vel ──► motores ; publica /odom + TF odom→base_link
+   motor_driver_node     ── /cmd_vel ──► motores ; publica /odom (sin TF si hay EKF)
+   mpu6050_node          ── /imu/data_raw (100 Hz)
+   ekf_filter_node       ── /odom + /imu/data_raw ──► /odometry/filtered + TF odom→base_link
+   sllidar_node          ── /scan (RPLIDAR C1, frame laser)
+   slam_toolbox          ── /scan + TF ──► /map + TF map→odom   (solo al mapear)
    rpi_camera_node       ── /camera/image_raw, /camera/image_raw/compressed
             │
             │ WiFi: solo el JPEG (~0,5 MB/s)
@@ -42,6 +46,12 @@ export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 - Placa **Adafruit DC Motor + Stepper FeatherWing** (PCA9685, I2C `0x60`)
 - 2 motores DC amarillos TT, sin encoder, con ruedas de 65 mm
 - Rueda loca (bola) a 9 cm por detrás del eje de las ruedas motrices
+- **RPLIDAR C1** por USB (puerto `/dev/serial/by-id/usb-Silicon_Labs_CP2102N...`), frame `laser`,
+  girado 180° en el URDF
+- **IMU MPU6050** (6 ejes: acelerómetro + giroscopio, sin magnetómetro) en el bus **I2C 1**
+  (pines 3 SDA y 5 SCL de la Jetson), dirección `0x68`. Va encima de la Jetson, en el lado
+  **derecho** del robot. Ejes medidos: X delante, Y izquierda, Z arriba (igual que ROS).
+  La FeatherWing de los motores va en otro bus (I2C 0, pines 27/28).
 - Cámara **Raspberry Pi v1.3** (sensor OV5647) en el conector **CAM0**, montada boca abajo
 - Alimentación **separada**:
   - Jetson: batería LiPo 3S 3000 mAh, vía placa reductora a 5V (jack barrel con jumper J48 puesto).
@@ -67,6 +77,8 @@ export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 | `motor_driver` | Nodo que mueve los motores a partir de `/cmd_vel` y publica la odometría |
 | `robot_description` | Modelo URDF del robot y launch principal (`robot.launch.py`) |
 | `rpi_camera` | Nodo que publica la imagen de la cámara CSI (o de una webcam USB) |
+| `mpu6050_imu` | Nodo del IMU MPU6050: publica `/imu/data_raw` |
+| `sllidar_ros2` | Driver del RPLIDAR (de Slamtec), se lanza con el C1 |
 
 Fuera del workspace: `tools/pc/jpeg_relay.py`, el puente de imagen que se ejecuta en el PC.
 
@@ -139,13 +151,62 @@ a la Nano B01 con un overlay propio que pone la OV5647 en los dos conectores
   driver con `sudo rmmod ov5647 && sudo modprobe ov5647`).
 - Cable plano: en la Jetson, contactos hacia el disipador; en la cámara, contactos hacia la placa.
 
+### `mpu6050_node`
+
+Lee el MPU6050 por I2C y publica `sensor_msgs/Imu` en `/imu/data_raw` a 100 Hz (frame `imu_link`):
+velocidad angular (rad/s) y aceleración (m/s²), **sin orientación** (el chip no tiene magnetómetro).
+Al arrancar **calibra el sesgo del giroscopio**: deja el robot **quieto los ~2 primeros segundos**.
+
+Parámetros: `bus` (1), `address` (0x68), `rate_hz` (100), `frame_id` (`imu_link`),
+`calibrate_gyro` (true), `calib_samples` (300).
+
+```bash
+ros2 launch mpu6050_imu mpu6050.launch.py        # solo el IMU
+```
+
+### ¿Qué es el EKF? (`robot_localization`)
+
+EKF = *Extended Kalman Filter* (filtro de Kalman extendido). Es un algoritmo que **combina
+varias medidas imperfectas de la misma cosa para obtener una estimación mejor que cualquiera
+de ellas por separado**, ponderando cada una según lo fiable que sea.
+
+Aquí el problema es que el robot **no tiene encoders**: `motor_driver` calcula la odometría
+suponiendo que las ruedas hicieron lo que se les ordenó. Eso falla sobre todo al girar
+(patinan, deriva, zona muerta de los motores) y un error de giro estropea todo el mapa.
+
+El nodo `ekf_node` del paquete estándar `robot_localization` (viene con ROS, no es nuestro) fusiona:
+
+| Fuente | Qué se usa | Por qué |
+|---|---|---|
+| `/odom` (motores) | Solo la velocidad hacia delante `vx` | Es lo único razonable que dan los motores |
+| `/imu/data_raw` (giroscopio) | Solo la velocidad de giro `vyaw` | El giroscopio mide el giro **real**, no el ordenado |
+
+y publica `/odometry/filtered` y el TF `odom → base_link`. Como consecuencia, **cuando el EKF
+está activo, `motor_driver` ya no publica ese TF** (`publish_tf:=false`); solo debe publicarlo
+uno. La configuración está en `robot_description/config/ekf.yaml`.
+
+Límites: la posición hacia delante sigue siendo una estimación (no hay encoders), y el giro
+del IMU acumula un pequeño error con el tiempo (sin magnetómetro no hay referencia absoluta).
+`slam_toolbox` corrige ambas cosas comparando los escaneos del lidar. Si algo falla, se puede
+desactivar con `with_ekf:=false` y volver a la odometría directa de los motores.
+
 ### `robot_description`
 
-Modelo URDF (`urdf/robot.urdf`) con cuerpo, ruedas, rueda loca, Jetson y cámara.
-`robot_state_publisher` publica los TF fijos del robot; `motor_driver` publica `odom → base_link`.
+Contiene el modelo y los lanzamientos principales:
 
-Las medidas del cuerpo y de la cámara son aproximadas; la posición de la cámara
-(`camera_joint`) es provisional.
+| Fichero | Contenido |
+|---|---|
+| `urdf/robot.urdf` | Cuerpo, ruedas, rueda loca, Jetson, cámara, lidar (`laser`) e IMU (`imu_link`) |
+| `launch/robot.launch.py` | Lanza todo el robot (ver «Lanzamientos») |
+| `launch/slam.launch.py` | Lanza `slam_toolbox` en modo mapeo |
+| `config/ekf.yaml` | Parámetros del EKF |
+| `config/slam_params.yaml` | Parámetros de `slam_toolbox` |
+
+Árbol de TF: `map → odom → base_link → (laser, imu_link, camera_link, ruedas...)`.
+`slam_toolbox` publica `map → odom`, el EKF `odom → base_link` y `robot_state_publisher` el resto.
+
+Las medidas del cuerpo, cámara, lidar e IMU son aproximadas; las posiciones de la cámara
+(`camera_joint`) y del IMU (`imu_joint`, solo x/y) son provisionales. Los ejes del IMU sí están medidos.
 
 ### Compilar
 
@@ -158,6 +219,67 @@ source install/setup.bash
 ```
 
 `build/`, `install/` y `log/` no se suben a git (`.gitignore`).
+
+## Lanzamientos
+
+Siempre en la Jetson, con `source ~/diag/env.sh` hecho y, si es posible, dentro de `tmux`.
+Cada comando va en su propia terminal (o ventana de tmux).
+
+### Robot completo: `robot.launch.py`
+
+```bash
+ros2 launch robot_description robot.launch.py
+```
+
+Lanza: `robot_state_publisher`, `motor_driver_node`, `rpi_camera_node`, el lidar, `mpu6050_node`
+y `ekf_filter_node`. Argumentos (todos `true` por defecto):
+
+| Argumento | Qué activa |
+|---|---|
+| `with_motors` | `motor_driver_node` (motores y `/odom`) |
+| `with_camera` | `rpi_camera_node` |
+| `with_lidar` | RPLIDAR C1 (`/scan`) |
+| `with_imu` | `mpu6050_node` (`/imu/data_raw`) |
+| `with_ekf` | `ekf_filter_node`. Con `false`, `motor_driver` publica él el TF `odom→base_link` |
+
+### Casos de uso
+
+| Quiero... | Comando |
+|---|---|
+| Mapear (SLAM) | Terminal 1: `ros2 launch robot_description robot.launch.py with_camera:=false`<br>Terminal 2: `ros2 launch robot_description slam.launch.py`<br>Terminal 3: teleop (ver «Mandar órdenes») |
+| Solo ver el modelo en RViz | `ros2 launch robot_description robot.launch.py with_motors:=false with_camera:=false with_lidar:=false with_imu:=false with_ekf:=false` |
+| Probar el IMU y el EKF sin lidar ni cámara | `ros2 launch robot_description robot.launch.py with_camera:=false with_lidar:=false` |
+| Volver a la odometría directa (sin IMU) | `ros2 launch robot_description robot.launch.py with_imu:=false with_ekf:=false` |
+| Solo el lidar | `ros2 launch sllidar_ros2 sllidar_c1_launch.py serial_port:=<by-id> frame_id:=laser` |
+
+Para mapear, lanza la cámara solo si la necesitas: la Nano va justa de CPU.
+Empieza con el robot **quieto 2-3 s** (calibración del giroscopio) y muévelo despacio.
+
+### Comprobaciones rápidas
+
+```bash
+ros2 node list                                   # ekf_filter_node, motor_driver_node, mpu6050_node, ...
+ros2 topic hz /imu/data_raw                      # ~100 Hz
+ros2 topic hz /scan                              # frecuencia del lidar
+ros2 topic hz /odometry/filtered                 # ~30 Hz
+ros2 run tf2_ros tf2_echo odom base_link         # el TF existe y se mueve al girar el robot
+ros2 run tf2_tools view_frames                   # dibuja el árbol de TF (frames.pdf)
+```
+
+### Guardar el mapa
+
+Con `slam.launch.py` en marcha y el mapa terminado:
+
+```bash
+mkdir -p ~/maps
+ros2 service call /slam_toolbox/serialize_map slam_toolbox/srv/SerializePoseGraph "{filename: '/home/jetson/maps/mapa1'}"
+```
+
+Guarda el grafo de poses (`.posegraph` y `.data`), con el que `slam_toolbox` puede relocalizarse
+(`mode: localization` y `map_file_name` en `slam_params.yaml`). Para exportar la imagen `.pgm/.yaml`
+(la que usa Nav2) hará falta `nav2_map_server`, que aún no está instalado.
+
+> Estado: `slam.launch.py` está escrito pero **pendiente de probar con el robot real**.
 
 ## Cómo activar los motores
 
@@ -172,16 +294,12 @@ source install/setup.bash
 
 ```bash
 ssh jetson@192.168.1.34
-cd ~/ros2_ws && source install/setup.bash
+source ~/diag/env.sh            # ROS + workspace + ROS_DOMAIN_ID=42 + perfil DDS por UDP
 ros2 launch robot_description robot.launch.py
 ```
 
-Arranca el modelo (`robot_state_publisher`), los motores (`motor_driver_node`) y la cámara
-(`rpi_camera_node`).
-
-- Sin motores: `ros2 launch robot_description robot.launch.py with_motors:=false`
-- Sin cámara: `ros2 launch robot_description robot.launch.py with_camera:=false`
-- Solo los motores: `ros2 launch motor_driver motor_driver.launch.py`
+Arranca todo el robot; los argumentos y los casos de uso están en «Lanzamientos».
+Solo los motores: `ros2 launch motor_driver motor_driver.launch.py`.
 
 Deja esta terminal abierta (los errores salen aquí). Para que siga aunque se cierre SSH, usa `tmux`:
 
@@ -226,6 +344,7 @@ Conecta el mando a la máquina donde corre el comando (lo más sencillo, la Jets
 
 ### 4. Visualizar en RViz2 (PC, Omarchy)
 
+
 ```bash
 xhost +local:docker                                        # en el host, no en el contenedor
 docker start ros2_foxy
@@ -235,8 +354,10 @@ rviz2
 ```
 
 En RViz:
-- *Fixed Frame* = `odom`
-- Añade `RobotModel` (*Description Topic* = `/robot_description`), `TF` y `Odometry` (`/odom`).
+- *Fixed Frame* = `odom` (o `map` si `slam.launch.py` está en marcha)
+- Añade `RobotModel` (*Description Topic* = `/robot_description`), `TF` y `Odometry`
+  (`/odometry/filtered`).
+- Para el lidar, `LaserScan` con `/scan`; para el mapa, `Map` con `/map`.
 
 **Imagen de la cámara.** El display `Image` de RViz2 en Foxy no sabe mostrar imágenes
 comprimidas, así que en el PC corre un puente que descomprime el JPEG. `tools/pc/jpeg_relay.py`
@@ -288,17 +409,19 @@ Si cambias la alimentación de los motores o las pilas se gastan, hay que recali
 
 ## Limitaciones conocidas
 
-- Sin encoders: la odometría es una estimación de lo ordenado, no de lo recorrido.
-- La deriva cambia con la velocidad y la carga de las pilas; sin encoders o IMU nunca irá perfectamente recto.
-- Sin sensor de distancia (hasta que llegue el lidar): no hay freno ni navegación autónoma.
+- Sin encoders: la distancia recorrida es una estimación de lo ordenado, no de lo recorrido. El giro
+  se corrige con el giroscopio del IMU (EKF), pero sin magnetómetro acumula un pequeño error.
+- La deriva cambia con la velocidad y la carga de las pilas.
+- Hay lidar, pero todavía no hay freno por obstáculos ni navegación autónoma (falta Nav2).
 - La WiFi USB de la Jetson (rtl88x2bu) no aguanta imagen sin comprimir hacia el PC.
 - La cámara usa un driver de terceros, que no forma parte de JetPack.
 - Foxy está en fin de vida; se mantiene por compatibilidad con la Jetson Nano (JetPack 4.x).
 
 ## Próximos pasos
 
-1. Montar el lidar 2D y su driver (`/scan`), y añadirlo al URDF.
-2. Rehacer el freno por obstáculos y el explorador sobre `/scan`.
-3. SLAM con `slam_toolbox` para crear el mapa.
-4. Navegación autónoma con Nav2.
-5. Ajustar la posición real de la cámara en el URDF.
+1. ~~Montar el lidar~~ y ~~el IMU~~ (hecho). Medir la posición real del IMU (x/y) en el URDF.
+2. Probar el EKF girando el robot y comprobar el yaw de `/odometry/filtered`.
+3. Probar SLAM con `slam_toolbox` y crear el primer mapa.
+4. Instalar Nav2 (`ros-foxy-navigation2`, `ros-foxy-nav2-bringup`) y navegación autónoma.
+5. Rehacer el freno por obstáculos sobre `/scan`.
+6. Ajustar la posición real de la cámara en el URDF.
